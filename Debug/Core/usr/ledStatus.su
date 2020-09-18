@@ -1,0 +1,2 @@
+ledStatus.cpp:13:17:void init_ledStatus()	8	static
+ledStatus.cpp:18:17:void ledStatus_handler()	8	static
