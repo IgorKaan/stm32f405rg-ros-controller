@@ -76,7 +76,7 @@ extern uint8_t sensorData14;
 extern uint8_t sensorData15;
 extern uint8_t sensorData16;
 
-extern uint8_t laser_sensor_data[16];
+extern uint8_t diagnostics_data[6];
 
 extern uint32_t leftCount, rightCount;
 
@@ -91,7 +91,7 @@ std_msgs::Int8 uint_msg_left_front;
 std_msgs::Int8 uint_msg_right_back;
 std_msgs::Int8 uint_msg_left_back;
 
-std_msgs::UInt8MultiArray laser_sensors_data_array;
+std_msgs::UInt8MultiArray diagnostics_data_array;
 
 std_msgs::UInt8 state_data_msg;
 
@@ -136,7 +136,7 @@ ros::Subscriber<std_msgs::Int8> rpm_leftFront_sub("rpm_leftFront_sub", rpm_leftF
 ros::Subscriber<std_msgs::Int8> rpm_rightBack_sub("rpm_rightBack_sub", rpm_rightBack_subCb);
 ros::Subscriber<std_msgs::Int8> rpm_leftBack_sub("rpm_leftBack_sub", rpm_leftBack_subCb);
 
-ros::Publisher laser_sensors_data("laser_sensors_data", &laser_sensors_data_array);
+ros::Publisher diagnostic_data("diagnostics_data", &diagnostics_data_array);
 ros::Publisher state_data("state_data", &state_data_msg);
 static nbt_t gyro_nbt;
 static nbt_t accel_nbt;
@@ -146,7 +146,7 @@ static nbt_t rpm_right_back_nbt;
 static nbt_t rpm_left_back_nbt;
 static nbt_t ros_nbt;
 static nbt_t state_nbt;
-static nbt_t laser_sensors_data_nbt;
+static nbt_t diagnostics_data_nbt;
 
 extern "C" void rpm_rightFront_subCb(const std_msgs::Int8& msg)
 {
@@ -235,14 +235,14 @@ extern "C" void init_ROS(void)
 	nh.advertise(rpm_left_back);
 	nh.advertise(rpm_right_back);
 
-	nh.advertise(laser_sensors_data);
+	nh.advertise(diagnostic_data);
 
 	NBT_init(&rpm_left_front_nbt, 9);
 	NBT_init(&rpm_right_front_nbt, 9);
 	NBT_init(&rpm_left_back_nbt, 9);
 	NBT_init(&rpm_right_back_nbt, 9);
 
-	NBT_init(&laser_sensors_data_nbt, 9);
+	NBT_init(&diagnostics_data_nbt, 9);
 
 	NBT_init(&gyro_nbt, 5);
 	NBT_init(&accel_nbt, 5);
@@ -250,13 +250,13 @@ extern "C" void init_ROS(void)
 	NBT_init(&ros_nbt, 1);
 }
 
-extern "C" void laser_sensors_data_handler(void)
+extern "C" void diagnostics_data_handler(void)
 {
-	if (NBT_handler(&laser_sensors_data_nbt)) {
-		laser_sensors_data_array.data_length = 16;
-		laser_sensors_data_array.data = laser_sensor_data;
+	if (NBT_handler(&diagnostics_data_nbt)) {
+		diagnostics_data_array.data_length = 6;
+		diagnostics_data_array.data = diagnostics_data;
     	if (nh.connected()) {
-    		laser_sensors_data.publish(&laser_sensors_data_array);
+    		diagnostic_data.publish(&diagnostics_data_array);
     	}
 	}
 }

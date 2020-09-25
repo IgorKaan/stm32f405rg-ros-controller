@@ -77,7 +77,7 @@ cpp_main.cpp:183:17:void rpm_rightBack_subCb(const std_msgs::Int8&)	16	static
 cpp_main.cpp:199:17:void rpm_leftBack_subCb(const std_msgs::Int8&)	16	static
 cpp_main.cpp:215:17:void cdc_receive_put(uint8_t)	16	static
 cpp_main.cpp:219:17:void init_ROS()	8	static
-cpp_main.cpp:253:17:void laser_sensors_data_handler()	8	static
+cpp_main.cpp:253:17:void diagnostics_data_handler()	8	static
 cpp_main.cpp:264:17:void state_data_handler()	8	static
 cpp_main.cpp:274:17:void rpm_right_front_handler()	8	static
 cpp_main.cpp:293:17:void rpm_left_front_handler()	8	static

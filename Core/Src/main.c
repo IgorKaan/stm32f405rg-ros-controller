@@ -103,7 +103,14 @@ uint8_t sensorData14 = 0;
 uint8_t sensorData15 = 0;
 uint8_t sensorData16 = 0;
 
-uint8_t laser_sensor_data[16] = {0};
+uint8_t current_right_1 = 0;
+uint8_t current_right_2 = 0;
+uint8_t current_left_1 = 0;
+uint8_t current_left_2 = 0;
+uint8_t temp_right = 0;
+uint8_t temp_left = 0;
+
+uint8_t diagnostics_data[6] = {0,};
 
 uint8_t speedRXDataRightFrontWheel;
 uint8_t sideRXDataRightFrontWheel;
@@ -174,7 +181,7 @@ void laser_sensor_handler_16(void);
 
 void state_data_handler(void);
 
-void laser_sensors_data_handler(void);
+void diagnostics_data_handler(void);
 
 void accel_handler(void);
 void gyro_handler(void);
@@ -451,13 +458,25 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan) {
 		sideRXDataLeftFrontWheel = canRXData[1];
 		speedRXDataLeftBackWheel = canRXData[2];
 		sideRXDataLeftBackWheel = canRXData[3];
+		current_left_1 = canRXData[4];
+		current_left_2 = canRXData[5];
+		temp_left = canRXData[6];
 	}
 	else if (can_RxHeader.StdId == 0x1A) {
 		speedRXDataRightFrontWheel = canRXData[0];
 		sideRXDataRightFrontWheel = canRXData[1];
 		speedRXDataRightBackWheel = canRXData[2];
 		sideRXDataRightBackWheel = canRXData[3];
+		current_right_1 = canRXData[4];
+		current_right_2 = canRXData[5];
+		temp_right = canRXData[6];
 	}
+	diagnostics_data[0] = current_left_1;
+	diagnostics_data[1] = current_left_2;
+	diagnostics_data[2] = current_right_1;
+	diagnostics_data[3] = current_right_2;
+	diagnostics_data[4] = temp_left;
+	diagnostics_data[5] = temp_right;
 	can_RxHeader.StdId = 0x0000;
 }
 /* USER CODE END 4 */
@@ -525,18 +544,28 @@ void StartTask03(void const * argument)
 	  right_wheels_data[1] = speedDataRightFrontWheel;
 	  right_wheels_data[2] = sideDataRightBackWheel;
 	  right_wheels_data[3] = speedDataRightBackWheel;
-	  HAL_CAN_AddTxMessage(&hcan1, &left_wheels_Header, left_wheels_data, &TxMailbox);
-	  osDelay(2);
+	  if( HAL_CAN_AddTxMessage(&hcan1, &left_wheels_Header, left_wheels_data, &TxMailbox) == HAL_OK) {
+		  can2++;
+	  }
+	  osDelay(3);
 	  HAL_CAN_AddTxMessage(&hcan1, &right_wheels_Header, right_wheels_data, &TxMailbox);
-	  osDelay(2);
+	  osDelay(3);
+//	  left_wheels_data[0] = 1;
+//	  left_wheels_data[1] = 30;
+//	  left_wheels_data[2] = 1;
+//	  left_wheels_data[3] = 30;
+//	  right_wheels_data[0] = 0;
+//	  right_wheels_data[1] = 30;
+//	  right_wheels_data[2] = 0;
+//	  right_wheels_data[3] = 30;
 	  rpm_left_front_handler();
-	  osDelay(2);
+	  osDelay(3);
 	  rpm_left_back_handler();
-	  osDelay(2);
+	  osDelay(3);
 	  rpm_right_front_handler();
-	  osDelay(2);
+	  osDelay(3);
 	  rpm_right_back_handler();
-	  osDelay(2);
+	  osDelay(3);
   }
   /* USER CODE END StartTask03 */
 }
@@ -554,8 +583,8 @@ void StartTask04(void const * argument)
   /* Infinite loop */
   for(;;)
   {
-	  laser_sensors_data_handler();
-	  osDelay(50);
+	  diagnostics_data_handler();
+	  osDelay(100);
   }
   /* USER CODE END StartTask04 */
 }
@@ -575,6 +604,7 @@ void StartTask05(void const * argument)
   {
 	  spinOnce();
 	  osDelay(10);
+	  //vTaskDelayUntil(pxPreviousWakeTime, xTimeIncrement)
   }
   /* USER CODE END StartTask05 */
 }
