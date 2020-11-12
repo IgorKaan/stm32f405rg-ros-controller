@@ -266,7 +266,7 @@ int main(void)
   task1Handle = osThreadCreate(osThread(task1), NULL);
 
   /* definition and creation of task2 */
-  osThreadDef(task2, StartTask03, osPriorityHigh, 0, 128);
+  osThreadDef(task2, StartTask03, osPriorityNormal, 0, 128);
   task2Handle = osThreadCreate(osThread(task2), NULL);
 
   /* definition and creation of task3 */
@@ -274,11 +274,11 @@ int main(void)
   task3Handle = osThreadCreate(osThread(task3), NULL);
 
   /* definition and creation of task4 */
-  osThreadDef(task4, StartTask05, osPriorityIdle, 0, 128);
+  osThreadDef(task4, StartTask05, osPriorityNormal, 0, 128);
   task4Handle = osThreadCreate(osThread(task4), NULL);
 
   /* definition and creation of task5 */
-  osThreadDef(task5, StartTask06, osPriorityIdle, 0, 128);
+  osThreadDef(task5, StartTask06, osPriorityNormal, 0, 128);
   task5Handle = osThreadCreate(osThread(task5), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
@@ -527,11 +527,15 @@ void StartDefaultTask(void const * argument)
 void StartTask02(void const * argument)
 {
   /* USER CODE BEGIN StartTask02 */
+  TickType_t xLastWakeTime;
+  const TickType_t xFrequency = 10;
+  xLastWakeTime = xTaskGetTickCount();
   /* Infinite loop */
   for(;;)
   {
+      vTaskDelayUntil( &xLastWakeTime, xFrequency );
 	  MPU9250_getAllData(allData);
-	  osDelay(10);
+	  //osDelay(10);
 	  count++;
   }
   /* USER CODE END StartTask02 */
