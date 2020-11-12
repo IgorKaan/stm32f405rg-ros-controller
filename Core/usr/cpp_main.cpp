@@ -66,15 +66,6 @@ extern uint8_t sensorData6;
 
 extern uint8_t sensorData7;
 extern uint8_t sensorData8;
-extern uint8_t sensorData9;
-extern uint8_t sensorData10;
-extern uint8_t sensorData11;
-extern uint8_t sensorData12;
-
-extern uint8_t sensorData13;
-extern uint8_t sensorData14;
-extern uint8_t sensorData15;
-extern uint8_t sensorData16;
 
 extern uint8_t diagnostics_data[6];
 
@@ -92,29 +83,13 @@ std_msgs::Int8 uint_msg_right_back;
 std_msgs::Int8 uint_msg_left_back;
 
 std_msgs::UInt8MultiArray diagnostics_data_array;
-
-std_msgs::UInt8 state_data_msg;
+std_msgs::UInt8MultiArray sensors_data_array;
 
 geometry_msgs::Vector3 gyro_msg;
 geometry_msgs::Vector3 accel_msg;
-
-sensor_msgs::Range laser_sensor_msg_1;
-sensor_msgs::Range laser_sensor_msg_2;
-sensor_msgs::Range laser_sensor_msg_3;
-sensor_msgs::Range laser_sensor_msg_4;
-sensor_msgs::Range laser_sensor_msg_5;
-sensor_msgs::Range laser_sensor_msg_6;
-sensor_msgs::Range laser_sensor_msg_7;
-sensor_msgs::Range laser_sensor_msg_8;
-sensor_msgs::Range laser_sensor_msg_9;
-sensor_msgs::Range laser_sensor_msg_10;
-sensor_msgs::Range laser_sensor_msg_11;
-sensor_msgs::Range laser_sensor_msg_12;
-sensor_msgs::Range laser_sensor_msg_13;
-sensor_msgs::Range laser_sensor_msg_14;
-sensor_msgs::Range laser_sensor_msg_15;
-sensor_msgs::Range laser_sensor_msg_16;
-
+geometry_msgs::Vector3 sen1_3_msg;
+geometry_msgs::Vector3 sen4_6_msg;
+geometry_msgs::Vector3 sen7_8_msg;
 
 extern "C" void rpm_rightFront_subCb(const std_msgs::Int8& msg);
 extern "C" void rpm_leftFront_subCb(const std_msgs::Int8& msg);
@@ -137,7 +112,10 @@ ros::Subscriber<std_msgs::Int8> rpm_rightBack_sub("rpm_rightBack_sub", rpm_right
 ros::Subscriber<std_msgs::Int8> rpm_leftBack_sub("rpm_leftBack_sub", rpm_leftBack_subCb);
 
 ros::Publisher diagnostic_data("diagnostics_data", &diagnostics_data_array);
-ros::Publisher state_data("state_data", &state_data_msg);
+ros::Publisher sensa_data("sensors1_3_data", &sen1_3_msg);
+ros::Publisher sensb_data("sensors4_6_data", &sen4_6_msg);
+ros::Publisher sensc_data("sensors7_8_data", &sen7_8_msg);
+
 static nbt_t gyro_nbt;
 static nbt_t accel_nbt;
 static nbt_t rpm_right_front_nbt;
@@ -145,8 +123,10 @@ static nbt_t rpm_left_front_nbt;
 static nbt_t rpm_right_back_nbt;
 static nbt_t rpm_left_back_nbt;
 static nbt_t ros_nbt;
-static nbt_t state_nbt;
 static nbt_t diagnostics_data_nbt;
+static nbt_t sensors1_3_data_nbt;
+static nbt_t sensors4_6_data_nbt;
+static nbt_t sensors7_8_data_nbt;
 
 extern "C" void rpm_rightFront_subCb(const std_msgs::Int8& msg)
 {
@@ -235,7 +215,10 @@ extern "C" void init_ROS(void)
 	nh.advertise(rpm_left_back);
 	nh.advertise(rpm_right_back);
 
-	nh.advertise(diagnostic_data);
+	//nh.advertise(diagnostic_data);
+	nh.advertise(sensa_data);
+	nh.advertise(sensb_data);
+	nh.advertise(sensc_data);
 
 	NBT_init(&rpm_left_front_nbt, 9);
 	NBT_init(&rpm_right_front_nbt, 9);
@@ -243,11 +226,47 @@ extern "C" void init_ROS(void)
 	NBT_init(&rpm_right_back_nbt, 9);
 
 	NBT_init(&diagnostics_data_nbt, 9);
+	NBT_init(&sensors1_3_data_nbt, 9);
+	NBT_init(&sensors4_6_data_nbt, 9);
+	NBT_init(&sensors7_8_data_nbt, 9);
 
 	NBT_init(&gyro_nbt, 5);
 	NBT_init(&accel_nbt, 5);
 
 	NBT_init(&ros_nbt, 1);
+}
+
+extern "C" void sensors1_3_data_handler(void)
+{
+	if (NBT_handler(&sensors1_3_data_nbt)) {
+		sen1_3_msg.x = static_cast<float>(sensorData1);
+		sen1_3_msg.y = static_cast<float>(sensorData2);
+		sen1_3_msg.z = static_cast<float>(sensorData3);
+    	sensa_data.publish(&sen1_3_msg);
+
+	}
+}
+
+extern "C" void sensors4_6_data_handler(void)
+{
+	if (NBT_handler(&sensors4_6_data_nbt)) {
+		sen4_6_msg.x = static_cast<float>(sensorData4);
+		sen4_6_msg.y = static_cast<float>(sensorData5);
+		sen4_6_msg.z = static_cast<float>(sensorData6);
+    	sensb_data.publish(&sen4_6_msg);
+
+	}
+}
+
+extern "C" void sensors7_8_data_handler(void)
+{
+	if (NBT_handler(&sensors7_8_data_nbt)) {
+		sen7_8_msg.x = static_cast<float>(sensorData7);
+		sen7_8_msg.y = static_cast<float>(sensorData8);
+		sen7_8_msg.z = 0.0;
+    	sensc_data.publish(&sen7_8_msg);
+
+	}
 }
 
 extern "C" void diagnostics_data_handler(void)
@@ -257,16 +276,6 @@ extern "C" void diagnostics_data_handler(void)
 		diagnostics_data_array.data = diagnostics_data;
     	if (nh.connected()) {
     		diagnostic_data.publish(&diagnostics_data_array);
-    	}
-	}
-}
-
-extern "C" void state_data_handler(void)
-{
-	if (NBT_handler(&state_nbt)) {
-		state_data_msg.data = state_can;
-    	if (nh.connected()) {
-    		state_data.publish(&state_data_msg);
     	}
 	}
 }

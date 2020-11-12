@@ -69,6 +69,9 @@ CAN_FilterTypeDef sFilterConfig;
 CAN_RxHeaderTypeDef can_RxHeader;
 uint32_t TxMailbox;
 
+uint32_t sensors_data[8];
+uint32_t can_res = 0;
+uint32_t tick = 0;
 uint8_t state_can = 0;
 uint32_t leftCount, rightCount;
 uint8_t ctrl = 0x00;
@@ -94,14 +97,6 @@ uint8_t sensorData5 = 0;
 uint8_t sensorData6 = 0;
 uint8_t sensorData7 = 0;
 uint8_t sensorData8 = 0;
-uint8_t sensorData9 = 0;
-uint8_t sensorData10 = 0;
-uint8_t sensorData11 = 0;
-uint8_t sensorData12 = 0;
-uint8_t sensorData13 = 0;
-uint8_t sensorData14 = 0;
-uint8_t sensorData15 = 0;
-uint8_t sensorData16 = 0;
 
 uint8_t current_right_1 = 0;
 uint8_t current_right_2 = 0;
@@ -162,24 +157,9 @@ void rpm_left_back_handler(void);
 void rpm_right_front_handler(void);
 void rpm_right_back_handler(void);
 
-void laser_sensor_handler_1(void);
-void laser_sensor_handler_2(void);
-void laser_sensor_handler_3(void);
-void laser_sensor_handler_4(void);
-void laser_sensor_handler_5(void);
-void laser_sensor_handler_6(void);
-void laser_sensor_handler_7(void);
-void laser_sensor_handler_8(void);
-void laser_sensor_handler_9(void);
-void laser_sensor_handler_10(void);
-void laser_sensor_handler_11(void);
-void laser_sensor_handler_12(void);
-void laser_sensor_handler_13(void);
-void laser_sensor_handler_14(void);
-void laser_sensor_handler_15(void);
-void laser_sensor_handler_16(void);
-
-void state_data_handler(void);
+void sensors1_3_data_handler(void);
+void sensors4_6_data_handler(void);
+void sensors7_8_data_handler(void);
 
 void diagnostics_data_handler(void);
 
@@ -450,7 +430,7 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE BEGIN 4 */
 void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan) {
-
+	can_res++;
 	HAL_CAN_GetRxMessage(&hcan1, CAN_RX_FIFO0, &can_RxHeader, canRXData);
 
 	if (can_RxHeader.StdId == 0xA) {
@@ -470,6 +450,38 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan) {
 		current_right_1 = canRXData[4];
 		current_right_2 = canRXData[5];
 		temp_right = canRXData[6];
+	}
+	else if (can_RxHeader.StdId == 0x1D) {
+		sensorData1 = canRXData[0];
+		sensors_data[0]++;
+	}
+	else if (can_RxHeader.StdId == 0x2D) {
+		sensorData2 = canRXData[0];
+		sensors_data[1]++;
+	}
+	else if (can_RxHeader.StdId == 0x3D) {
+		sensorData3 = canRXData[0];
+		sensors_data[2]++;
+	}
+	else if (can_RxHeader.StdId == 0x4D) {
+		sensorData4 = canRXData[0];
+		sensors_data[3]++;
+	}
+	else if (can_RxHeader.StdId == 0x5D) {
+		sensorData5 = canRXData[0];
+		sensors_data[4]++;
+	}
+	else if (can_RxHeader.StdId == 0x6D) {
+		sensorData6 = canRXData[0];
+		sensors_data[5]++;
+	}
+	else if (can_RxHeader.StdId == 0x7D) {
+		sensorData7 = canRXData[0];
+		sensors_data[6]++;
+	}
+	else if (can_RxHeader.StdId == 0x8D) {
+		sensorData8 = canRXData[0];
+		sensors_data[7]++;
 	}
 	diagnostics_data[0] = current_left_1;
 	diagnostics_data[1] = current_left_2;
@@ -550,14 +562,6 @@ void StartTask03(void const * argument)
 	  osDelay(3);
 	  HAL_CAN_AddTxMessage(&hcan1, &right_wheels_Header, right_wheels_data, &TxMailbox);
 	  osDelay(3);
-//	  left_wheels_data[0] = 1;
-//	  left_wheels_data[1] = 30;
-//	  left_wheels_data[2] = 1;
-//	  left_wheels_data[3] = 30;
-//	  right_wheels_data[0] = 0;
-//	  right_wheels_data[1] = 30;
-//	  right_wheels_data[2] = 0;
-//	  right_wheels_data[3] = 30;
 	  rpm_left_front_handler();
 	  osDelay(3);
 	  rpm_left_back_handler();
@@ -583,8 +587,13 @@ void StartTask04(void const * argument)
   /* Infinite loop */
   for(;;)
   {
-	  diagnostics_data_handler();
-	  osDelay(100);
+	  //diagnostics_data_handler();
+	  sensors1_3_data_handler();
+	  osDelay(4);
+	  sensors4_6_data_handler();
+	  osDelay(4);
+	  //sensors7_8_data_handler();
+	  //osDelay(4);
   }
   /* USER CODE END StartTask04 */
 }
@@ -622,7 +631,8 @@ void StartTask06(void const * argument)
   /* Infinite loop */
   for(;;)
   {
-	  osDelay(10);
+	  //sensors_data_handler(sensors_data);
+	  osDelay(30);
   }
   /* USER CODE END StartTask06 */
 }
@@ -638,7 +648,7 @@ void StartTask06(void const * argument)
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
   /* USER CODE BEGIN Callback 0 */
-
+  ++tick;
   /* USER CODE END Callback 0 */
   if (htim->Instance == TIM3) {
     HAL_IncTick();
