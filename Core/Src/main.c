@@ -33,7 +33,7 @@ uint8_t usbRxData[APP_RX_DATA_SIZE] ;
 #include "ringbuffer.h"
 #include "mpu9250_usr.h"
 #include <stdbool.h>
-
+#include "task.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -137,6 +137,7 @@ uint32_t f, laser1, laser2, imu, wheels;
 uint32_t can2;
 uint8_t nh_connected = 0;
 uint8_t cansp = 15;
+uint32_t count = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -211,9 +212,9 @@ int main(void)
 
   HAL_Delay(2000);
   MPU9250_init();
-  HAL_Delay(500);
+  //HAL_Delay(500);
   init_ROS();
-  HAL_Delay(500);
+  //HAL_Delay(500);
 
   left_wheels_Header.DLC = 4;
   left_wheels_Header.IDE = CAN_ID_STD;
@@ -531,6 +532,7 @@ void StartTask02(void const * argument)
   {
 	  MPU9250_getAllData(allData);
 	  osDelay(10);
+	  count++;
   }
   /* USER CODE END StartTask02 */
 }
@@ -631,8 +633,10 @@ void StartTask06(void const * argument)
   /* Infinite loop */
   for(;;)
   {
-	  //sensors_data_handler(sensors_data);
-	  osDelay(30);
+//	  if (count > 1000)
+//	  vTaskSuspend(task1Handle);
+//	  eTaskState myState;
+	  osDelay(2000);
   }
   /* USER CODE END StartTask06 */
 }
