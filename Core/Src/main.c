@@ -137,7 +137,8 @@ uint32_t f, laser1, laser2, imu, wheels;
 uint32_t can2;
 uint8_t nh_connected = 0;
 uint8_t cansp = 15;
-uint32_t count = 0;
+uint32_t imu_pub_count = 0;
+uint32_t imu_get_count = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -212,9 +213,9 @@ int main(void)
 
   HAL_Delay(2000);
   MPU9250_init();
-  //HAL_Delay(500);
+  HAL_Delay(500);
   init_ROS();
-  //HAL_Delay(500);
+  HAL_Delay(500);
 
   left_wheels_Header.DLC = 4;
   left_wheels_Header.IDE = CAN_ID_STD;
@@ -506,13 +507,18 @@ void StartDefaultTask(void const * argument)
   /* init code for USB_DEVICE */
   MX_USB_DEVICE_Init();
   /* USER CODE BEGIN 5 */
+  TickType_t xLastWakeTime;
+  const TickType_t xFrequency = 3;
+  xLastWakeTime = xTaskGetTickCount();
   /* Infinite loop */
   for(;;)
   {
+      vTaskDelayUntil( &xLastWakeTime, xFrequency );
 	  gyro_handler();
-	  osDelay(4);
+	  osDelay(1);
 	  accel_handler();
-	  osDelay(4);
+	  osDelay(1);
+	  imu_pub_count++;
   }
   /* USER CODE END 5 */
 }
@@ -528,15 +534,14 @@ void StartTask02(void const * argument)
 {
   /* USER CODE BEGIN StartTask02 */
   TickType_t xLastWakeTime;
-  const TickType_t xFrequency = 10;
+  const TickType_t xFrequency = 3;
   xLastWakeTime = xTaskGetTickCount();
   /* Infinite loop */
   for(;;)
   {
       vTaskDelayUntil( &xLastWakeTime, xFrequency );
 	  MPU9250_getAllData(allData);
-	  //osDelay(10);
-	  count++;
+	  imu_get_count++;
   }
   /* USER CODE END StartTask02 */
 }
@@ -551,9 +556,13 @@ void StartTask02(void const * argument)
 void StartTask03(void const * argument)
 {
   /* USER CODE BEGIN StartTask03 */
+  TickType_t xLastWakeTime;
+  const TickType_t xFrequency = 10;
+  xLastWakeTime = xTaskGetTickCount();
   /* Infinite loop */
   for(;;)
   {
+      vTaskDelayUntil( &xLastWakeTime, xFrequency );
 	  left_wheels_data[0] = sideDataLeftFrontWheel;
 	  left_wheels_data[1] = speedDataLeftFrontWheel;
 	  left_wheels_data[2] = sideDataLeftBackWheel;
@@ -565,17 +574,9 @@ void StartTask03(void const * argument)
 	  if( HAL_CAN_AddTxMessage(&hcan1, &left_wheels_Header, left_wheels_data, &TxMailbox) == HAL_OK) {
 		  can2++;
 	  }
-	  osDelay(3);
+	  osDelay(1);
 	  HAL_CAN_AddTxMessage(&hcan1, &right_wheels_Header, right_wheels_data, &TxMailbox);
-	  osDelay(3);
-	  rpm_left_front_handler();
-	  osDelay(3);
-	  rpm_left_back_handler();
-	  osDelay(3);
-	  rpm_right_front_handler();
-	  osDelay(3);
-	  rpm_right_back_handler();
-	  osDelay(3);
+	  osDelay(1);
   }
   /* USER CODE END StartTask03 */
 }
@@ -590,14 +591,18 @@ void StartTask03(void const * argument)
 void StartTask04(void const * argument)
 {
   /* USER CODE BEGIN StartTask04 */
+  TickType_t xLastWakeTime;
+  const TickType_t xFrequency = 20;
+  xLastWakeTime = xTaskGetTickCount();
   /* Infinite loop */
   for(;;)
   {
 	  //diagnostics_data_handler();
+      vTaskDelayUntil( &xLastWakeTime, xFrequency );
 	  sensors1_3_data_handler();
-	  osDelay(4);
+	  osDelay(5);
 	  sensors4_6_data_handler();
-	  osDelay(4);
+	  osDelay(5);
 	  //sensors7_8_data_handler();
 	  //osDelay(4);
   }
@@ -634,13 +639,21 @@ void StartTask05(void const * argument)
 void StartTask06(void const * argument)
 {
   /* USER CODE BEGIN StartTask06 */
+  TickType_t xLastWakeTime;
+  const TickType_t xFrequency = 20;
+  xLastWakeTime = xTaskGetTickCount();
   /* Infinite loop */
   for(;;)
   {
-//	  if (count > 1000)
-//	  vTaskSuspend(task1Handle);
-//	  eTaskState myState;
-	  osDelay(2000);
+	  vTaskDelayUntil( &xLastWakeTime, xFrequency );
+	  rpm_left_front_handler();
+	  osDelay(1);
+	  rpm_left_back_handler();
+	  osDelay(1);
+	  rpm_right_front_handler();
+	  osDelay(1);
+	  rpm_right_back_handler();
+	  osDelay(1);
   }
   /* USER CODE END StartTask06 */
 }

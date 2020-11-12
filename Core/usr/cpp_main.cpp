@@ -220,18 +220,18 @@ extern "C" void init_ROS(void)
 	nh.advertise(sensb_data);
 	nh.advertise(sensc_data);
 
-	NBT_init(&rpm_left_front_nbt, 9);
-	NBT_init(&rpm_right_front_nbt, 9);
-	NBT_init(&rpm_left_back_nbt, 9);
-	NBT_init(&rpm_right_back_nbt, 9);
+	NBT_init(&rpm_left_front_nbt, 5);
+	NBT_init(&rpm_right_front_nbt, 5);
+	NBT_init(&rpm_left_back_nbt, 5);
+	NBT_init(&rpm_right_back_nbt, 5);
 
-	NBT_init(&diagnostics_data_nbt, 9);
-	NBT_init(&sensors1_3_data_nbt, 9);
-	NBT_init(&sensors4_6_data_nbt, 9);
-	NBT_init(&sensors7_8_data_nbt, 9);
+	NBT_init(&diagnostics_data_nbt, 5);
+	NBT_init(&sensors1_3_data_nbt, 5);
+	NBT_init(&sensors4_6_data_nbt, 5);
+	NBT_init(&sensors7_8_data_nbt, 5);
 
-	NBT_init(&gyro_nbt, 5);
-	NBT_init(&accel_nbt, 5);
+	NBT_init(&gyro_nbt, 1);
+	NBT_init(&accel_nbt, 1);
 
 	NBT_init(&ros_nbt, 1);
 }
@@ -282,8 +282,8 @@ extern "C" void diagnostics_data_handler(void)
 
 extern "C" void rpm_right_front_handler(void)
 {
-	if (NBT_handler(&rpm_right_front_nbt))
-	{
+	//if (NBT_handler(&rpm_right_front_nbt))
+	//{
 		if (sideRXDataRightFrontWheel == 2) {
 		    uint_msg_right_front.data = speedRXDataRightFrontWheel;
 		}
@@ -296,13 +296,13 @@ extern "C" void rpm_right_front_handler(void)
     	if (nh.connected()) {
     		rpm_right_front.publish(&uint_msg_right_front);
     	}
-	}
+	//}
 }
 
 extern "C" void rpm_left_front_handler(void)
 {
-	if (NBT_handler(&rpm_left_front_nbt))
-	{
+	//if (NBT_handler(&rpm_left_front_nbt))
+	//{
 		if (sideRXDataLeftFrontWheel == 1) {
 		    uint_msg_left_front.data = speedRXDataLeftFrontWheel;
 		}
@@ -315,13 +315,13 @@ extern "C" void rpm_left_front_handler(void)
     	if (nh.connected()) {
     		rpm_left_front.publish(&uint_msg_left_front);
     	}
-	}
+	//}
 }
 
 extern "C" void rpm_right_back_handler(void)
 {
-	if (NBT_handler(&rpm_right_back_nbt))
-	{
+	//if (NBT_handler(&rpm_right_back_nbt))
+	//{
 		if (sideRXDataRightBackWheel == 2) {
 		    uint_msg_right_back.data = speedRXDataRightBackWheel;
 		}
@@ -334,13 +334,13 @@ extern "C" void rpm_right_back_handler(void)
     	if (nh.connected()) {
     		rpm_right_back.publish(&uint_msg_right_back);
     	}
-	}
+	//}
 }
 
 extern "C" void rpm_left_back_handler(void)
 {
-	if (NBT_handler(&rpm_left_back_nbt))
-	{
+	//if (NBT_handler(&rpm_left_back_nbt))
+	//{
 		if (sideRXDataLeftBackWheel == 1) {
 		  	uint_msg_left_back.data = speedRXDataLeftBackWheel;
 		}
@@ -353,7 +353,7 @@ extern "C" void rpm_left_back_handler(void)
 		if (nh.connected()) {
 			rpm_left_back.publish(&uint_msg_left_back);
 		}
-	}
+	//}
 }
 
 extern "C" void gyro_handler(void)
@@ -362,7 +362,7 @@ extern "C" void gyro_handler(void)
     gyro_msg.y = gyroY;
     gyro_msg.z = gyroZ;
     if (nh.connected()) {
-    	if (NBT_handler(&gyro_nbt))
+    	//if (NBT_handler(&gyro_nbt))
     	{
     		gyro.publish(&gyro_msg);
     	}
@@ -375,7 +375,7 @@ extern "C" void accel_handler(void)
     accel_msg.y = accelY;
     accel_msg.z = accelZ;
     if (nh.connected()) {
-    	if (NBT_handler(&accel_nbt))
+    	//if (NBT_handler(&accel_nbt))
     	{
     		accel.publish(&accel_msg);
     	}
@@ -384,8 +384,8 @@ extern "C" void accel_handler(void)
 
 extern "C" void spinOnce(void)
 {
-	if (NBT_handler(&ros_nbt))	{
+	//if (NBT_handler(&ros_nbt))	{
 		nh.spinOnce();
-	}
+	//}
 }
 
