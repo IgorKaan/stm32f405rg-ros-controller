@@ -238,46 +238,45 @@ extern "C" void init_ROS(void)
 
 extern "C" void sensors1_3_data_handler(void)
 {
-	if (NBT_handler(&sensors1_3_data_nbt)) {
+	//if (NBT_handler(&sensors1_3_data_nbt)) {
 		sen1_3_msg.x = static_cast<float>(sensorData1);
 		sen1_3_msg.y = static_cast<float>(sensorData2);
 		sen1_3_msg.z = static_cast<float>(sensorData3);
     	sensa_data.publish(&sen1_3_msg);
 
-	}
+	//}
 }
 
 extern "C" void sensors4_6_data_handler(void)
 {
-	if (NBT_handler(&sensors4_6_data_nbt)) {
+	//if (NBT_handler(&sensors4_6_data_nbt)) {
 		sen4_6_msg.x = static_cast<float>(sensorData4);
 		sen4_6_msg.y = static_cast<float>(sensorData5);
 		sen4_6_msg.z = static_cast<float>(sensorData6);
     	sensb_data.publish(&sen4_6_msg);
-
-	}
+	//}
 }
 
 extern "C" void sensors7_8_data_handler(void)
 {
-	if (NBT_handler(&sensors7_8_data_nbt)) {
+	//if (NBT_handler(&sensors7_8_data_nbt)) {
 		sen7_8_msg.x = static_cast<float>(sensorData7);
 		sen7_8_msg.y = static_cast<float>(sensorData8);
 		sen7_8_msg.z = 0.0;
     	sensc_data.publish(&sen7_8_msg);
 
-	}
+	//}
 }
 
 extern "C" void diagnostics_data_handler(void)
 {
-	if (NBT_handler(&diagnostics_data_nbt)) {
+	//if (NBT_handler(&diagnostics_data_nbt)) {
 		diagnostics_data_array.data_length = 6;
 		diagnostics_data_array.data = diagnostics_data;
     	if (nh.connected()) {
     		diagnostic_data.publish(&diagnostics_data_array);
     	}
-	}
+	//}
 }
 
 extern "C" void rpm_right_front_handler(void)

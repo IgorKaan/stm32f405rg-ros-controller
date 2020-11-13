@@ -508,7 +508,7 @@ void StartDefaultTask(void const * argument)
   MX_USB_DEVICE_Init();
   /* USER CODE BEGIN 5 */
   TickType_t xLastWakeTime;
-  const TickType_t xFrequency = 3;
+  const TickType_t xFrequency = 2;
   xLastWakeTime = xTaskGetTickCount();
   /* Infinite loop */
   for(;;)
@@ -534,7 +534,7 @@ void StartTask02(void const * argument)
 {
   /* USER CODE BEGIN StartTask02 */
   TickType_t xLastWakeTime;
-  const TickType_t xFrequency = 3;
+  const TickType_t xFrequency = 4;
   xLastWakeTime = xTaskGetTickCount();
   /* Infinite loop */
   for(;;)
@@ -600,9 +600,9 @@ void StartTask04(void const * argument)
 	  //diagnostics_data_handler();
       vTaskDelayUntil( &xLastWakeTime, xFrequency );
 	  sensors1_3_data_handler();
-	  osDelay(5);
+	  osDelay(4);
 	  sensors4_6_data_handler();
-	  osDelay(5);
+	  osDelay(4);
 	  //sensors7_8_data_handler();
 	  //osDelay(4);
   }
