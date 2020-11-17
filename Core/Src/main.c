@@ -27,13 +27,10 @@
 uint8_t usbRxData[APP_RX_DATA_SIZE] ;
 
 //The number should be the same as APP_RX_DATA_SIZE
-#include "nbt.h"
-#include <math.h>
 #include "cpp_main.h"
 #include "ringbuffer.h"
 #include "mpu9250_usr.h"
-#include <stdbool.h>
-#include "task.h"
+#include "delay_micros.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -55,6 +52,8 @@ uint8_t usbRxData[APP_RX_DATA_SIZE] ;
 CAN_HandleTypeDef hcan1;
 
 I2C_HandleTypeDef hi2c1;
+
+TIM_HandleTypeDef htim14;
 
 osThreadId defaultTaskHandle;
 osThreadId task1Handle;
@@ -139,6 +138,8 @@ uint8_t nh_connected = 0;
 uint8_t cansp = 15;
 uint32_t imu_pub_count = 0;
 uint32_t imu_get_count = 0;
+
+uint8_t I2Cerr;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -146,6 +147,7 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_CAN1_Init(void);
 static void MX_I2C1_Init(void);
+static void MX_TIM14_Init(void);
 void StartDefaultTask(void const * argument);
 void StartTask02(void const * argument);
 void StartTask03(void const * argument);
@@ -207,8 +209,8 @@ int main(void)
   MX_GPIO_Init();
   MX_CAN1_Init();
   MX_I2C1_Init();
+  MX_TIM14_Init();
   /* USER CODE BEGIN 2 */
-  ctrl = read_id();
   MPU9250_calibrate();
 
   HAL_Delay(2000);
@@ -216,6 +218,7 @@ int main(void)
   HAL_Delay(500);
   init_ROS();
   HAL_Delay(500);
+  DWT_Init();
 
   left_wheels_Header.DLC = 4;
   left_wheels_Header.IDE = CAN_ID_STD;
@@ -259,27 +262,27 @@ int main(void)
 
   /* Create the thread(s) */
   /* definition and creation of defaultTask */
-  osThreadDef(defaultTask, StartDefaultTask, osPriorityNormal, 0, 128);
+  osThreadDef(defaultTask, StartDefaultTask, osPriorityNormal, 0, 256);
   defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
 
   /* definition and creation of task1 */
-  osThreadDef(task1, StartTask02, osPriorityNormal, 0, 128);
+  osThreadDef(task1, StartTask02, osPriorityNormal, 0, 256);
   task1Handle = osThreadCreate(osThread(task1), NULL);
 
   /* definition and creation of task2 */
-  osThreadDef(task2, StartTask03, osPriorityNormal, 0, 128);
+  osThreadDef(task2, StartTask03, osPriorityNormal, 0, 256);
   task2Handle = osThreadCreate(osThread(task2), NULL);
 
   /* definition and creation of task3 */
-  osThreadDef(task3, StartTask04, osPriorityNormal, 0, 128);
+  osThreadDef(task3, StartTask04, osPriorityNormal, 0, 256);
   task3Handle = osThreadCreate(osThread(task3), NULL);
 
   /* definition and creation of task4 */
-  osThreadDef(task4, StartTask05, osPriorityNormal, 0, 128);
+  osThreadDef(task4, StartTask05, osPriorityNormal, 0, 256);
   task4Handle = osThreadCreate(osThread(task4), NULL);
 
   /* definition and creation of task5 */
-  osThreadDef(task5, StartTask06, osPriorityNormal, 0, 128);
+  osThreadDef(task5, StartTask06, osPriorityNormal, 0, 256);
   task5Handle = osThreadCreate(osThread(task5), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
@@ -288,7 +291,6 @@ int main(void)
 
   /* Start scheduler */
   osKernelStart();
-
   /* We should never get here as control is now taken by the scheduler */
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
@@ -416,6 +418,37 @@ static void MX_I2C1_Init(void)
 }
 
 /**
+  * @brief TIM14 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM14_Init(void)
+{
+
+  /* USER CODE BEGIN TIM14_Init 0 */
+
+  /* USER CODE END TIM14_Init 0 */
+
+  /* USER CODE BEGIN TIM14_Init 1 */
+
+  /* USER CODE END TIM14_Init 1 */
+  htim14.Instance = TIM14;
+  htim14.Init.Prescaler = 168;
+  htim14.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim14.Init.Period = 65535;
+  htim14.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim14.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim14) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM14_Init 2 */
+
+  /* USER CODE END TIM14_Init 2 */
+
+}
+
+/**
   * @brief GPIO Initialization Function
   * @param None
   * @retval None
@@ -515,8 +548,10 @@ void StartDefaultTask(void const * argument)
   {
       vTaskDelayUntil( &xLastWakeTime, xFrequency );
 	  gyro_handler();
-	  osDelay(1);
+	  delay_us(100);
+	  //osDelay(1);
 	  accel_handler();
+	  delay_us(100);
 	  osDelay(1);
 	  imu_pub_count++;
   }
@@ -534,14 +569,16 @@ void StartTask02(void const * argument)
 {
   /* USER CODE BEGIN StartTask02 */
   TickType_t xLastWakeTime;
-  const TickType_t xFrequency = 4;
+  const TickType_t xFrequency = 2;
   xLastWakeTime = xTaskGetTickCount();
+  I2C1->CR2 |= 0x1U << 8;
   /* Infinite loop */
   for(;;)
   {
       vTaskDelayUntil( &xLastWakeTime, xFrequency );
 	  MPU9250_getAllData(allData);
 	  imu_get_count++;
+	  osDelay(1);
   }
   /* USER CODE END StartTask02 */
 }
@@ -574,9 +611,11 @@ void StartTask03(void const * argument)
 	  if( HAL_CAN_AddTxMessage(&hcan1, &left_wheels_Header, left_wheels_data, &TxMailbox) == HAL_OK) {
 		  can2++;
 	  }
-	  osDelay(1);
+	  delay_us(100);
+	  //osDelay(1);
 	  HAL_CAN_AddTxMessage(&hcan1, &right_wheels_Header, right_wheels_data, &TxMailbox);
-	  osDelay(1);
+	  delay_us(100);
+	  //osDelay(1);
   }
   /* USER CODE END StartTask03 */
 }
@@ -600,9 +639,11 @@ void StartTask04(void const * argument)
 	  //diagnostics_data_handler();
       vTaskDelayUntil( &xLastWakeTime, xFrequency );
 	  sensors1_3_data_handler();
-	  osDelay(4);
+	  delay_us(100);
+	  //osDelay(4);
 	  sensors4_6_data_handler();
-	  osDelay(4);
+	  delay_us(100);
+	  //osDelay(4);
 	  //sensors7_8_data_handler();
 	  //osDelay(4);
   }
@@ -647,13 +688,17 @@ void StartTask06(void const * argument)
   {
 	  vTaskDelayUntil( &xLastWakeTime, xFrequency );
 	  rpm_left_front_handler();
-	  osDelay(1);
+	  delay_us(100);
+	  //osDelay(1);
 	  rpm_left_back_handler();
-	  osDelay(1);
+	  delay_us(100);
+	  //osDelay(1);
 	  rpm_right_front_handler();
-	  osDelay(1);
+	  delay_us(100);
+	  //osDelay(1);
 	  rpm_right_back_handler();
-	  osDelay(1);
+	  delay_us(100);
+	  //osDelay(1);
   }
   /* USER CODE END StartTask06 */
 }

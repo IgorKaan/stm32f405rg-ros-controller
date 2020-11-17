@@ -23,6 +23,11 @@
 #include "stm32f4xx_it.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "cmsis_os.h"
+#include "cpp_main.h"
+#include "ringbuffer.h"
+#include "mpu9250_usr.h"
+#include "delay_micros.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -62,7 +67,13 @@ extern I2C_HandleTypeDef hi2c1;
 extern TIM_HandleTypeDef htim3;
 
 /* USER CODE BEGIN EV */
-
+extern uint8_t I2Cerr;
+extern osThreadId defaultTaskHandle;
+extern osThreadId task1Handle;
+extern osThreadId task2Handle;
+extern osThreadId task3Handle;
+extern osThreadId task4Handle;
+extern osThreadId task5Handle;
 /* USER CODE END EV */
 
 /******************************************************************************/
@@ -228,6 +239,25 @@ void I2C1_EV_IRQHandler(void)
   /* USER CODE BEGIN I2C1_EV_IRQn 1 */
 
   /* USER CODE END I2C1_EV_IRQn 1 */
+}
+
+/**
+  * @brief This function handles I2C1 error interrupt.
+  */
+void I2C1_ER_IRQHandler(void)
+{
+  /* USER CODE BEGIN I2C1_ER_IRQn 0 */
+  vTaskSuspend(task1Handle);
+  MPU9250_calibrate();
+  HAL_Delay(2000);
+  MPU9250_init();
+  HAL_Delay(500);
+  vTaskResume(task1Handle);
+  /* USER CODE END I2C1_ER_IRQn 0 */
+  HAL_I2C_ER_IRQHandler(&hi2c1);
+  /* USER CODE BEGIN I2C1_ER_IRQn 1 */
+
+  /* USER CODE END I2C1_ER_IRQn 1 */
 }
 
 /**

@@ -6,52 +6,22 @@ extern int32_t accel_bias_reg[3];
 extern volatile uint32_t sysTick_Time;
 extern I2C_HandleTypeDef hi2c1;
 extern uint8_t ctrl;
-extern float fGX_Cal;
-extern float fGY_Cal;
-extern float fGZ_Cal;
 extern float gyroX;
 extern float gyroY;
 extern float gyroZ;
 extern float accelX;
 extern float accelY;
 extern float accelZ;
-extern float gyroX_filtered;
-extern float gyroY_filtered;
-extern float gyroZ_filtered;
-extern int i;
-extern int is_initialized;
 
-// переменные для калмана
-float varVolt = 0; // среднее отклонение (расчет в программе)
-float varProcess = 0.2; // скорость реакции на изменение (подбирается вручную)
-float Pc = 0.0;
-float G = 0.0;
-float P = 1.0;
-float Xp = 0.0;
-float Zp = 0.0;
-float Xe = 0.0;
-uint8_t test = 0x00;
-uint8_t value = 0;
+uint8_t value = 0x00;
 
 void delay(uint32_t delayTime){
 	uint32_t startTime =  sysTick_Time;
 	while ( (sysTick_Time - startTime) < delayTime );
 }
 
-void error(void) {
-	HAL_GPIO_TogglePin(GPIOE,GPIO_PIN_8);
-	HAL_Delay(300);
-	HAL_GPIO_TogglePin(GPIOE,GPIO_PIN_8);
-	HAL_Delay(300);
-	HAL_GPIO_TogglePin(GPIOE,GPIO_PIN_8);
-	HAL_Delay(300);
-	HAL_GPIO_TogglePin(GPIOE,GPIO_PIN_8);
-	HAL_Delay(300);
-	HAL_GPIO_TogglePin(GPIOE,GPIO_PIN_8);
-	HAL_Delay(300);
-	HAL_GPIO_TogglePin(GPIOE,GPIO_PIN_8);
-	HAL_Delay(300);
-	HAL_GPIO_TogglePin(GPIOE,GPIO_PIN_8);
+void error() {
+
 }
 
 uint8_t sensor_io_read(uint16_t DeviceAddr, uint8_t RegisterAddr) {
@@ -80,7 +50,7 @@ void I2Cx_WriteData(uint16_t Addr, uint8_t Reg, uint8_t Value) {
     status = HAL_I2C_Mem_Write(&hi2c1, Addr, (uint16_t)(Reg<<1), I2C_MEMADD_SIZE_8BIT, &Value, 1, 0x10000);
     if(status != HAL_OK)
     {
-    error();
+    	error();
     }
 }
 
@@ -228,15 +198,15 @@ void MPU9250_calibrate()
 
      //int32_t accel_bias_reg[3] = {0, 0, 0}; // A place to hold the factory accelerometer trim biases
      //readBytes(MPU9250_ADDRESS, XA_OFFSET_H, 2, &data[0]); // Read factory accelerometer trim values
-     data[0] = MPU9250_readReg(MPU9250_ADDRESS, XA_OFFSET_H);
-     data[1] = MPU9250_readReg(MPU9250_ADDRESS, XA_OFFSET_L);
-     data[2] = MPU9250_readReg(MPU9250_ADDRESS, YA_OFFSET_H);
-     data[3] = MPU9250_readReg(MPU9250_ADDRESS, YA_OFFSET_L);
-     data[4] = MPU9250_readReg(MPU9250_ADDRESS, ZA_OFFSET_H);
-     data[5] = MPU9250_readReg(MPU9250_ADDRESS, ZA_OFFSET_L);
-     accel_bias_reg[0] = (int32_t) (((int16_t)data[0] << 8) | data[1]  );
-     accel_bias_reg[1] = (int32_t) (((int16_t)data[2] << 8) | data[3]  );
-     accel_bias_reg[2] = (int32_t) (((int16_t)data[4] << 8) | data[5]  );
+    data[0] = MPU9250_readReg(MPU9250_ADDRESS, XA_OFFSET_H);
+    data[1] = MPU9250_readReg(MPU9250_ADDRESS, XA_OFFSET_L);
+    data[2] = MPU9250_readReg(MPU9250_ADDRESS, YA_OFFSET_H);
+    data[3] = MPU9250_readReg(MPU9250_ADDRESS, YA_OFFSET_L);
+    data[4] = MPU9250_readReg(MPU9250_ADDRESS, ZA_OFFSET_H);
+    data[5] = MPU9250_readReg(MPU9250_ADDRESS, ZA_OFFSET_L);
+    accel_bias_reg[0] = (int32_t) (((int16_t)data[0] << 8) | data[1]  );
+    accel_bias_reg[1] = (int32_t) (((int16_t)data[2] << 8) | data[3]  );
+    accel_bias_reg[2] = (int32_t) (((int16_t)data[4] << 8) | data[5]  );
      //((uint16_t)buffer[0] << 8) + buffer[1]))
      //readBytes(MPU9250_ADDRESS, YA_OFFSET_H, 2, &data[0]);
      //accel_bias_reg[1] = (uint16_t)((uint16_t)data[2]) << 8) + data[3]);
@@ -258,19 +228,19 @@ void MPU9250_calibrate()
     // }
 
      // Construct total accelerometer bias, including calculated average accelerometer bias from above
-     accel_bias_reg[0] -= (accel_bias[0] / 8); // Subtract calculated averaged accelerometer bias scaled to 2048 LSB/g (16 g full scale)
-     accel_bias_reg[1] -= (accel_bias[1] / 8);
-     accel_bias_reg[2] -= (accel_bias[2] / 8);
+    accel_bias_reg[0] -= (accel_bias[0] / 8); // Subtract calculated averaged accelerometer bias scaled to 2048 LSB/g (16 g full scale)
+    accel_bias_reg[1] -= (accel_bias[1] / 8);
+    accel_bias_reg[2] -= (accel_bias[2] / 8);
 
-     data[0] = (accel_bias_reg[0] >> 8) & 0xFF;
-     data[1] = (accel_bias_reg[0])      & 0xFF;
-     data[1] = data[1] | mask_bit[0]; // preserve temperature compensation bit when writing back to accelerometer bias registers
-     data[2] = (accel_bias_reg[1] >> 8) & 0xFF;
-     data[3] = (accel_bias_reg[1])      & 0xFF;
-     data[3] = data[3] | mask_bit[1]; // preserve temperature compensation bit when writing back to accelerometer bias registers
-     data[4] = (accel_bias_reg[2] >> 8) & 0xFF;
-     data[5] = (accel_bias_reg[2])      & 0xFF;
-     data[5] = data[5] | mask_bit[2]; // preserve temperature compensation bit when writing back to accelerometer bias registers
+    data[0] = (accel_bias_reg[0] >> 8) & 0xFF;
+    data[1] = (accel_bias_reg[0])      & 0xFF;
+    data[1] = data[1] | mask_bit[0]; // preserve temperature compensation bit when writing back to accelerometer bias registers
+    data[2] = (accel_bias_reg[1] >> 8) & 0xFF;
+    data[3] = (accel_bias_reg[1])      & 0xFF;
+    data[3] = data[3] | mask_bit[1]; // preserve temperature compensation bit when writing back to accelerometer bias registers
+    data[4] = (accel_bias_reg[2] >> 8) & 0xFF;
+    data[5] = (accel_bias_reg[2])      & 0xFF;
+    data[5] = data[5] | mask_bit[2]; // preserve temperature compensation bit when writing back to accelerometer bias registers
 
 //     Apparently this is not working for the acceleration biases in the MPU-9250
 //     Are we handling the temperature correction bit properly?
@@ -307,24 +277,24 @@ void MPU9250_getAllData(int16_t *Data)
 	accelX=((((int16_t)((uint16_t)buffer[6] << 8) + buffer[7])))/4096.0f*9.8f;
 	accelY=((((int16_t)((uint16_t)buffer[8] << 8) + buffer[9])))/4096.0f*9.8f;
 	accelZ=(((int16_t)((uint16_t)buffer[10] << 8) + buffer[11]))/4096.0f*9.8f;
-	gyroX_filtered = filter(gyroX);
-	gyroY_filtered = filter(gyroY);
-	gyroZ_filtered = filter(gyroZ);
+//	gyroX_filtered = filter(gyroX);
+//	gyroY_filtered = filter(gyroY);
+//	gyroZ_filtered = filter(gyroZ);
 //	accelX=((((int16_t)((uint16_t)buffer[6] << 8) + buffer[7])));
 //	accelY=((((int16_t)((uint16_t)buffer[8] << 8) + buffer[9])));
 //	accelZ=((((int16_t)((uint16_t)buffer[10] << 8) + buffer[11])));
 	//accelX_offset=(((int16_t)((uint16_t)buffer[6] << 8) + buffer[7]))/4096.0f*9.8f;
 }
 
-float filter(float val) { //функция фильтрации
-	Pc = P + varProcess;
-	G = Pc/(Pc + varVolt);
-	P = (1-G)*Pc;
-	Xp = Xe;
-	Zp = Xp;
-	Xe = G*(val-Zp)+Xp; // "фильтрованное" значение
-return(Xe);
-}
+//float filter(float val) { //функция фильтрации
+//	Pc = P + varProcess;
+//	G = Pc/(Pc + varVolt);
+//	P = (1-G)*Pc;
+//	Xp = Xe;
+//	Zp = Xp;
+//	Xe = G*(val-Zp)+Xp; // "фильтрованное" значение
+//return(Xe);
+//}
 
 void MPU9250_writeReg(uint16_t Addr, uint8_t reg, uint8_t value)
 {
@@ -359,41 +329,41 @@ void MPU9250_writeReg32Bit(uint16_t Addr, uint8_t reg, uint32_t value)
 // Read an 8-bit register
 uint8_t MPU9250_readReg(uint16_t Addr, uint8_t reg)
 {
-  uint8_t value;
-  HAL_I2C_Mem_Read(&hi2c1, (uint16_t)(Addr << 1), reg, 1, &value, 1, 1000);
-  return value;
+	uint8_t value;
+	HAL_I2C_Mem_Read(&hi2c1, (uint16_t)(Addr << 1), reg, 1, &value, 1, 1000);
+	return value;
 }
 
 // Read a 16-bit register
 uint16_t MPU9250_readReg16Bit(uint16_t Addr, uint8_t reg)
 {
-  uint16_t value;
-  uint8_t buff[2];
-  MPU9250_readMulti(Addr, reg, buff, 2);
-  uint16_t tmp;
-  tmp = buff[0];
-  tmp <<= 8;
-  tmp |= buff[1];
-  value = tmp;
-  return value;
+	uint16_t value;
+	uint8_t buff[2];
+	MPU9250_readMulti(Addr, reg, buff, 2);
+	uint16_t tmp;
+	tmp = buff[0];
+	tmp <<= 8;
+	tmp |= buff[1];
+	value = tmp;
+	return value;
 }
 
 // Read a 32-bit register
 uint32_t MPU9250_readReg32Bit(uint16_t Addr, uint8_t reg)
 {
-  uint32_t value;
-  uint8_t buff[4];
-  MPU9250_readMulti(Addr, reg, buff, 4);
-  uint32_t tmp;
-  tmp = buff[0];
-  tmp <<= 8;
-  tmp |= buff[1];
-  tmp <<= 8;
-  tmp |= buff[2];
-  tmp <<= 8;
-  tmp |= buff[3];
-  value = tmp;
-  return value;
+	uint32_t value;
+	uint8_t buff[4];
+	MPU9250_readMulti(Addr, reg, buff, 4);
+	uint32_t tmp;
+	tmp = buff[0];
+	tmp <<= 8;
+	tmp |= buff[1];
+	tmp <<= 8;
+	tmp |= buff[2];
+	tmp <<= 8;
+	tmp |= buff[3];
+	value = tmp;
+	return value;
 }
 
 // Write an arbitrary number of bytes from the given array to the sensor,

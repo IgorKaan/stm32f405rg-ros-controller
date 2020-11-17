@@ -52,10 +52,9 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
  ../USB_DEVICE/App/usb_device.h \
  ../Middlewares/ST/STM32_USB_Device_Library/Core/Inc/usbd_def.h \
  ../USB_DEVICE/Target/usbd_conf.h \
- /home/igor/Downloads/Telegram\ Desktop/stm32f405rg-ros-core-controller/Core/usr/nbt.h \
  /home/igor/Downloads/Telegram\ Desktop/stm32f405rg-ros-core-controller/Core/usr/cpp_main.h \
  /home/igor/Downloads/Telegram\ Desktop/stm32f405rg-ros-core-controller/Core/usr/ringbuffer.h \
- ../Core/Src/mpu9250_usr.h
+ ../Core/Src/mpu9250_usr.h ../Core/Src/delay_micros.h
 
 ../Core/Inc/main.h:
 
@@ -165,10 +164,10 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
 
 ../USB_DEVICE/Target/usbd_conf.h:
 
-/home/igor/Downloads/Telegram\ Desktop/stm32f405rg-ros-core-controller/Core/usr/nbt.h:
-
 /home/igor/Downloads/Telegram\ Desktop/stm32f405rg-ros-core-controller/Core/usr/cpp_main.h:
 
 /home/igor/Downloads/Telegram\ Desktop/stm32f405rg-ros-core-controller/Core/usr/ringbuffer.h:
 
 ../Core/Src/mpu9250_usr.h:
+
+../Core/Src/delay_micros.h:
