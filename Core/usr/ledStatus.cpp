@@ -1,8 +1,5 @@
 /*
  * ledStatus.cpp
- *
- *  Created on: Sep 23, 2018
- *      Author: Itamar Eliakim
  */
 
 #include "stm32f4xx_hal.h"

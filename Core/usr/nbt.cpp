@@ -1,8 +1,5 @@
 /*
  * non_blocking_timer.c
- *
- *  Created on: Jun 10, 2018
- *      Author: Itamar Eliakim
  */
 
 #include "stm32f4xx_hal.h"

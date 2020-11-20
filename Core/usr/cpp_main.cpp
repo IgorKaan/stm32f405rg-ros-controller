@@ -196,6 +196,7 @@ extern "C" void cdc_receive_put(uint8_t value)
 	{
 		ringbuffer_putchar(&rb, value);
 	}
+
 extern "C" void init_ROS(void)
 {
 	ringbuffer_init(&rb, RxBuffer, RxBufferSize);

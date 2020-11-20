@@ -8096,6 +8096,7 @@ extern "C" void cdc_receive_put(uint8_t value)
  8003538:	100004d0 	.word	0x100004d0
 
 0800353c <init_ROS>:
+
 extern "C" void init_ROS(void)
 {
  800353c:	b580      	push	{r7, lr}

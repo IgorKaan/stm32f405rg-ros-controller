@@ -1,8 +1,5 @@
 /*
  * nbt.h
- *
- *  Created on: Jun 10, 2018
- *      Author: Itamar Eliakim
  */
 
 #ifndef NBT_H_
