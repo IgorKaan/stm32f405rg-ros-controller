@@ -136,7 +136,7 @@ static int8_t CDC_Receive_FS(uint8_t* pbuf, uint32_t *Len);
 static int8_t CDC_TransmitCplt_FS(uint8_t *pbuf, uint32_t *Len, uint8_t epnum);
 
 /* USER CODE BEGIN PRIVATE_FUNCTIONS_DECLARATION */
-
+void cdc_receive_put(uint8_t value);
 
 /* USER CODE END PRIVATE_FUNCTIONS_DECLARATION */
 
